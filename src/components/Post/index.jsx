@@ -1,41 +1,82 @@
+import { useState } from "react";
+import ptBr from "date-fns/locale/pt-BR";
+import { format, formatDistanceToNow } from "date-fns";
+
 import { Avatar } from "../Avatar";
 import { Comment } from "../Comment";
+
 import styles from "./styles.module.css";
 
-export const Post = ({ author, content }) => {
+export const Post = ({ author, content, publishedAt }) => {
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+
+  const publishedDateFormatted = format(
+    publishedAt,
+    "dd 'de' LLLL 'às' HH:mm'h'",
+    {
+      locale: ptBr,
+    }
+  );
+
+  const publishedDateRelativeNow = formatDistanceToNow(publishedAt, {
+    locale: ptBr,
+    addSuffix: true,
+  });
+
+  function handleCreateNewComment() {
+    event.preventDefault();
+
+    setComments([...comments, newComment]);
+    setNewComment("");
+  }
+
+  function handleChangeNewComment() {
+    setNewComment(event.target.value);
+  }
+
   return (
     <article className={styles.post}>
       <header>
         <div className={styles.author}>
-          <Avatar url="https://avatars.githubusercontent.com/u/52092659?v=4" />
+          <Avatar url={author.avatarUrl} />
 
           <div className={styles.authorInfo}>
-            <strong>Fred Reis</strong>
-            <span>Web Developer</span>
+            <strong>{author.name}</strong>
+            <span>{author.role}</span>
           </div>
         </div>
 
-        <time title="11 de Maio às 08:13h" dateTime="2022-05-11 08:13:30">
-          Publicado há 1h
+        <time
+          title={publishedDateFormatted}
+          dateTime={publishedAt.toISOString()}
+        >
+          {publishedDateRelativeNow}
         </time>
       </header>
 
       <div className={styles.content}>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. 🤨</p>{" "}
-        <p> Quo, dolor ea! 🎄</p>
-        <p>
-          <a href="">john.doo/yeah</a>
-        </p>{" "}
-        <p>
-          <a href="">#newproject,</a> <a href="">#berich,</a>{" "}
-          <a href="">#growth.</a>
-        </p>
+        {content.map((line) => {
+          if (line.type === "paragraph") {
+            return <p key={line.content}>{line.content}</p>;
+          } else if (line.type === "link") {
+            return (
+              <p key={line.content}>
+                <a href="#"> {line.content}</a>
+              </p>
+            );
+          }
+        })}
       </div>
 
-      <form className={styles.commentForm}>
+      <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
         <strong>Deixe o seu feedback</strong>
 
-        <textarea placeholder="Deixe um comentário" />
+        <textarea
+          value={newComment}
+          onChange={handleChangeNewComment}
+          placeholder="Deixe um comentário"
+        />
 
         <footer>
           <button type="submit">Publicar</button>
@@ -43,9 +84,9 @@ export const Post = ({ author, content }) => {
       </form>
 
       <div className={styles.commentList}>
-        <Comment />
-        <Comment />
-        <Comment />
+        {comments.map((comment) => (
+          <Comment key={comment} content={comment} />
+        ))}
       </div>
     </article>
   );
