@@ -32,12 +32,23 @@ export const Post = ({ author, content, publishedAt }) => {
   }
 
   function handleChangeNewComment() {
+    event.target.setCustomValidity("");
     setNewComment(event.target.value);
   }
 
   function deleteComment(_comment) {
-    setComments([...comments].filter((comment) => comment !== _comment));
+    const newCommentsWithoutDeletedOne = comments.filter(
+      (comment) => comment !== _comment
+    );
+
+    setComments(newCommentsWithoutDeletedOne);
   }
+
+  function handleInvalidNewComment(_comment) {
+    event.target.setCustomValidity("Digite um comentário!");
+  }
+
+  const isNewCommentEmpty = newComment.length === 0;
 
   return (
     <article className={styles.post}>
@@ -77,13 +88,17 @@ export const Post = ({ author, content, publishedAt }) => {
         <strong>Deixe o seu feedback</strong>
 
         <textarea
+          placeholder="Deixe um comentário"
           value={newComment}
           onChange={handleChangeNewComment}
-          placeholder="Deixe um comentário"
+          onInvalid={handleInvalidNewComment}
+          required
         />
 
         <footer>
-          <button type="submit">Publicar</button>
+          <button type="submit" disabled={isNewCommentEmpty}>
+            Publicar
+          </button>
         </footer>
       </form>
 
